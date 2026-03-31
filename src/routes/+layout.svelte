@@ -1,7 +1,23 @@
 <script>
-	import favicon from '$lib/assets/favicon.svg';
+	import favicon from '$lib/images/favicon.ico';
+	import { onMount } from 'svelte';
+	import { invalidate } from '$app/navigation';
 
-	let { children } = $props();
+	let { children, data } = $props();
+
+	onMount(() => {
+		if (!data?.supabase) return;
+
+		const {
+			data: { subscription }
+		} = data.supabase.auth.onAuthStateChange(() => {
+			invalidate('supabase:auth');
+		});
+
+		return () => {
+			subscription.unsubscribe();
+		};
+	});
 </script>
 
 <svelte:head>

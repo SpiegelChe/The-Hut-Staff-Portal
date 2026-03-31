@@ -1,14 +1,26 @@
 <script>
 	import hutLogo from '$lib/images/The-Hut-Logo-150px.png';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 
-	let {
-		showLogout = false
-	} = $props();
+	let { showLogout = false } = $props();
+
+	async function handleLogout() {
+		try {
+			if (page.data?.supabase) {
+				await page.data.supabase.auth.signOut();
+			}
+		} catch (error) {
+			console.error('Logout failed:', error);
+		}
+
+		await goto('/');
+	}
 </script>
 
 <header class="site-header">
 	<div class="left">
-		<a class="logo-link" href="/">
+		<a class="logo-link" href={page.data?.user ? '/staff/dashboard' : '/'}>
 			<img class="logo" src={hutLogo} alt="The Hut Community Centre logo" />
 		</a>
 
@@ -19,10 +31,10 @@
 
 	<div class="right">
 		{#if showLogout}
-			<a class="logout-btn" href="/">
-        		<span class="icon">↪</span>
-        		Logout
-    		</a>
+			<button class="logout-btn" type="button" onclick={handleLogout}>
+				<span class="icon">↪</span>
+				Logout
+			</button>
 		{:else}
 			<div class="logout-placeholder"></div>
 		{/if}
@@ -67,19 +79,19 @@
 
 	.titles {
 		min-width: 0;
-		flex: 1; /* flexible title */
+		flex: 1;
 	}
 
 	.titles h1 {
 		margin: 0;
-		font-size: clamp(10px, 3.2vw, 25px); /* flexible font size */
+		font-size: clamp(10px, 3.2vw, 25px);
 		font-weight: 700;
 		line-height: 1.4;
 		color: #152238;
-		white-space: nowrap;   /* no return */
-		overflow: hidden;      /* if words overflow */
+		white-space: nowrap;
+		overflow: hidden;
 		text-overflow: ellipsis;
-		}
+	}
 
 	.right {
 		flex-shrink: 0;
@@ -100,7 +112,6 @@
 		color: #111827;
 		font-size: 13px;
 		font-weight: 500;
-		text-decoration: none;
 		cursor: pointer;
 
 		display: inline-flex;

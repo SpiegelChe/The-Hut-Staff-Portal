@@ -1,5 +1,9 @@
 <script>
     import Header from '$lib/components/Header.svelte';
+
+    let { data } = $props();
+
+	const firstName = $derived(data?.staff?.full_name?.split(' ')[0] || 'there');
 </script>
 
 <svelte:head>
@@ -14,7 +18,7 @@
 <section class="dashboard-page">
     <div class="titles">
         <h1>Dashboard</h1>
-        <p>Welcome back! Where do we start today?</p>
+        <p>Welcome back {firstName}! Where do we start today?</p>
     </div>
 
     <a class="card attendance" href="/staff/attendance">
