@@ -6,6 +6,7 @@
 
 	let searchText = '';
 	let selectedCategory = 'all';
+	/** @type {number | null} */
 	let expandedProgramId = null;
 
 	const categoryOptions = [
@@ -151,7 +152,7 @@
 </script>
 
 <svelte:head>
-	<title>Add Program</title>
+	<title>Browse Program</title>
 </svelte:head>
 
 <Header showLogout={true} />
@@ -162,7 +163,7 @@
 	<div class="main-content">
 		<div class="page-header">
 			<div>
-				<h1>Add Program</h1>
+				<h1>Browse Program</h1>
 				<p>Filter existing programs, add new sessions, or register a brand new program.</p>
 			</div>
 

@@ -21,7 +21,14 @@ declare global {
 			staff?: {
 				staff_id: string;
 				full_name: string;
-				role: string;
+				email: string;
+				staff_type: 'employee' | 'volunteer' | null;
+				staff_role:
+					| 'program_coordinator'
+					| 'data_entry'
+					| 'manager'
+					| 'administrator'
+					| null;
 				is_active: boolean;
 			} | null;
 		}

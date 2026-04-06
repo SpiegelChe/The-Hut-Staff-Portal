@@ -7,6 +7,8 @@
 
 	async function handleLogout() {
 		try {
+			localStorage.removeItem('thehut_last_activity_at');
+
 			if (page.data?.supabase) {
 				await page.data.supabase.auth.signOut();
 			}
@@ -113,7 +115,6 @@
 		font-size: 13px;
 		font-weight: 500;
 		cursor: pointer;
-
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;

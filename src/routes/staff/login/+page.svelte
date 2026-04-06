@@ -4,6 +4,7 @@
 	// @ts-nocheck
 	import Header from '$lib/components/Header.svelte';
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 
 	export let data;
 
@@ -11,11 +12,17 @@
 	let password = '';
 	let errorMessage = '';
 	let loading = false;
+	let timeoutMessage = false;
+
+	onMount(() => {
+		timeoutMessage = new URLSearchParams(window.location.search).get('timeout') === '1';
+	});
 
 	/** @param {Event} event */
 	async function handleSubmit(event) {
 		event.preventDefault();
 		errorMessage = '';
+		timeoutMessage = false;
 		loading = true;
 
 		const { data: authData, error } = await data.supabase.auth.signInWithPassword({
@@ -90,6 +97,10 @@
 			/>
 		</label>
 
+		{#if timeoutMessage}
+			<p class="info">You have been signed out after 30 minutes of inactivity.</p>
+		{/if}
+
 		{#if errorMessage}
 			<p class="error">{errorMessage}</p>
 		{/if}
@@ -143,6 +154,13 @@
 		padding: 10px 12px;
 		border-radius: 8px;
 		border: 1px solid rgba(0, 0, 0, 0.25);
+	}
+
+	.info {
+		margin: 12px 0 0;
+		color: #1d4ed8;
+		font-size: 14px;
+		line-height: 1.5;
 	}
 
 	.error {

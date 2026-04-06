@@ -8,7 +8,7 @@
 	const menuItems = [
 		{ key: 'attendance', label: 'Tick Attendance', short: '✓', color: '#22c55e', href: '/staff/attendance' },
 		{ key: 'participants', label: 'Add Participant', short: '+', color: '#3b82f6', href: '/staff/participants' },
-		{ key: 'programs', label: 'Add Program', short: 'P', color: '#a855f7', href: '/staff/programs' },
+		{ key: 'programs', label: 'Browse Program', short: 'P', color: '#a855f7', href: '/staff/programs' },
 		{ key: 'search', label: 'Find Participant', short: '⌕', color: '#f97316', href: '/staff/search' },
 		{ key: 'reports', label: 'View Reports', short: '▥', color: '#14b8a6', href: '/staff/reports' },
 		{ key: 'training', label: 'Start Training', short: 'i', color: '#64748b', href: '/staff/training' }

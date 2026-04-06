@@ -1,5 +1,6 @@
 <script>
 	import favicon from '$lib/images/favicon.ico';
+	import IdleTimeout from '$lib/components/IdleTimeout.svelte';
 	import { onMount } from 'svelte';
 	import { invalidate } from '$app/navigation';
 
@@ -23,5 +24,9 @@
 <svelte:head>
 	<link rel="icon" href={favicon} />
 </svelte:head>
+
+{#if data?.supabase && data?.user}
+	<IdleTimeout supabase={data.supabase} user={data.user} />
+{/if}
 
 {@render children()}

@@ -1,9 +1,87 @@
 <script>
-    import Header from '$lib/components/Header.svelte';
+	import Header from '$lib/components/Header.svelte';
 
-    let { data } = $props();
+	/** @typedef {import('./$types').PageData} PageData */
+	/** @typedef {'program_coordinator' | 'data_entry' | 'manager' | 'administrator'} StaffRole */
+	/** @typedef {'attendance' | 'participants' | 'programs' | 'search' | 'reports' | 'training'} CardKey */
+	/**
+	 * @typedef {{
+	 *   key: CardKey,
+	 *   className: string,
+	 *   href: string,
+	 *   title: string,
+	 *   description: string
+	 * }} DashboardCard
+	 */
+
+	/** @type {{ data: PageData }} */
+	let { data } = $props();
 
 	const firstName = $derived(data?.staff?.full_name?.split(' ')[0] || 'there');
+
+	/** @type {DashboardCard[]} */
+	const allCards = [
+		{
+			key: 'attendance',
+			className: 'attendance',
+			href: '/staff/attendance',
+			title: 'Tick Attendance',
+			description: 'Record attendance for ongoing program.'
+		},
+		{
+			key: 'participants',
+			className: 'add-participant',
+			href: '/staff/participants',
+			title: 'Add Participant',
+			description: 'Register new participants or assign them into a program.'
+		},
+		{
+			key: 'programs',
+			className: 'add-program',
+			href: '/staff/programs',
+			title: 'Browse Program',
+			description: 'Browse existing programs and view program details.'
+		},
+		{
+			key: 'search',
+			className: 'record',
+			href: '/staff/search',
+			title: 'Find Participant',
+			description: 'Search and view participant records and history.'
+		},
+		{
+			key: 'reports',
+			className: 'report',
+			href: '/staff/reports',
+			title: 'View Reports',
+			description: 'Browse attendance and program statistics.'
+		},
+		{
+			key: 'training',
+			className: 'training',
+			href: '/staff/training',
+			title: 'Start Training',
+			description: 'Get to know how the system works.'
+		}
+	];
+
+	/** @type {Record<StaffRole, CardKey[]>} */
+	const allowedCardKeysByRole = {
+		program_coordinator: ['attendance', 'participants', 'programs', 'training'],
+		data_entry: ['participants', 'programs', 'search', 'training'],
+		manager: ['attendance', 'participants', 'programs', 'search', 'reports', 'training'],
+		administrator: ['attendance', 'participants', 'programs', 'search', 'reports', 'training']
+	};
+
+	const visibleCards = $derived.by(() => {
+		/** @type {StaffRole | null} */
+		const staffRole = data?.staff?.staff_role ?? null;
+
+		if (!staffRole) return [];
+
+		const allowedKeys = allowedCardKeysByRole[staffRole];
+		return allCards.filter((card) => allowedKeys.includes(card.key));
+	});
 </script>
 
 <svelte:head>
@@ -21,35 +99,12 @@
         <p>Welcome back {firstName}! Where do we start today?</p>
     </div>
 
-    <a class="card attendance" href="/staff/attendance">
-        <h1>Tick Attendance</h1>
-        <p>Record attendance for ongoing program.</p>
-    </a>
-
-    <a class="card add-participant" href="/staff/participants">
-        <h1>Add Participant</h1>
-        <p>Register new participants or assign them into a program.</p>
-    </a>
-
-    <a class="card add-program" href="/staff/programs">
-        <h1>Add Program</h1>
-        <p>Register information of new programs.</p>
-    </a>
-
-    <a class="card record" href="/staff/search">
-        <h1>Find Participant</h1>
-        <p>Search and view participant records and history.</p>
-    </a>
-
-    <a class="card report" href="/staff/reports">
-        <h1>View Reports</h1>
-        <p>Browse attendance and program statistics.</p>
-    </a>
-
-    <a class="card training" href="/staff/training">
-        <h1>Start training</h1>
-        <p>Get to know how the system works.</p>
-    </a>
+    {#each visibleCards as card}
+        <a class={`card ${card.className}`} href={card.href}>
+            <h1>{card.title}</h1>
+            <p>{card.description}</p>
+        </a>
+    {/each}
 </section>
 
 <style>
