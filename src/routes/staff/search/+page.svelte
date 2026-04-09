@@ -26,6 +26,7 @@
     import Header from '$lib/components/Header.svelte';
 	import SidebarNav from '$lib/components/SidebarNav.svelte';
 
+	export let data;
 	let searchText = '';
     /** @type {number | null} */
 	let expandedParticipantId = null;
@@ -134,7 +135,7 @@
 <Header showLogout={true} />
 
 <section class="find-page">
-	<SidebarNav currentKey="search" />
+	<SidebarNav currentKey="search" staffRole={data?.staff?.staff_role ?? null} />
 
 	<div class="main-content">
 		<div class="page-header">

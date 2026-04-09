@@ -8,6 +8,8 @@
 	import SidebarNav from '$lib/components/SidebarNav.svelte';
 	import hutLogo from '$lib/images/The-Hut-Logo-150px.png';
 
+	export let data;
+
 	const REPORT_SOURCE = 'report_records';
 
 	let reportMode = 'monthly';
@@ -1152,7 +1154,7 @@
 <Header showLogout={true} />
 
 <section class="reports-page">
-	<SidebarNav currentKey="reports" />
+	<SidebarNav currentKey="reports" staffRole={data?.staff?.staff_role ?? null} />
 
 	<div class="main-content">
 		<div class="page-header">

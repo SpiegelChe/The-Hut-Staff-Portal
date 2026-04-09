@@ -5,7 +5,7 @@
 	import Header from '$lib/components/Header.svelte';
 	import SidebarNav from '$lib/components/SidebarNav.svelte';
 
-	/** @typedef {'basics' | 'attendance' | 'participants' | 'find' | 'programs' | 'reports'} ModuleKey */
+	export let data;
 
 	/**
 	 * @typedef {{
@@ -15,6 +15,7 @@
 	 * }} TrainingStep
 	 */
 
+	/** @typedef {'basics' | 'attendance' | 'participants' | 'find' | 'programs' | 'reports'} ModuleKey */
 	/**
 	 * @typedef {{
 	 *   key: ModuleKey,
@@ -55,7 +56,7 @@
 				{
 					target: 'dashboard-cards',
 					title: 'Each dashboard card opens a staff function',
-					text: 'The six cards on the Dashboard take staff to Tick Attendance, Add Participant, Add Program, Find Participant, View Reports, and Start Training.'
+					text: 'The six cards on the Dashboard take staff to Tick Attendance, Add Participant, Browse Program, Find Participant, View Reports, and Start Training.'
 				}
 			]
 		},
@@ -161,7 +162,7 @@
 		},
 		{
 			key: 'programs',
-			title: 'Add Program',
+			title: 'Browse Program',
 			icon: 'P',
 			color: '#a855f7',
 			href: '/staff/programs',
@@ -195,27 +196,32 @@
 			icon: '▥',
 			color: '#14b8a6',
 			href: '/staff/reports',
-			summary: 'Build filtered reports and preview the output before exporting.',
+			summary: 'Build filtered reports, preview the output, and export the final report.',
 			steps: [
 				{
-					target: 'reports-frequency',
+					target: 'reports-period',
 					title: 'Choose a reporting period',
-					text: 'Select a period such as weekly, monthly, quarterly, annually, or a custom date range to control the report scope.'
+					text: 'Start by choosing a reporting period. Use Weekly, Monthly, Quarterly, Annually, or Custom Range, then confirm the Start date and End date that define the report scope.'
 				},
 				{
-					target: 'reports-dates',
-					title: 'Set the report dates',
-					text: 'Start and end dates define which data will be included in the report preview and export.'
+					target: 'reports-program-filters',
+					title: 'Choose the program filters',
+					text: 'Use Program category and Program to narrow the report to the relevant activities before reviewing the results.'
 				},
 				{
-					target: 'reports-demographics',
-					title: 'Apply program and demographic filters',
-					text: 'Use filters such as program type, age group, and gender to focus on the data required for the report.'
+					target: 'reports-participant-filters',
+					title: 'Choose participant filters',
+					text: 'Use Age group, Gender, ATSI status, CALD background, Council, and Township to focus the report on the participant group you need.'
 				},
 				{
-					target: 'reports-actions',
-					title: 'Preview or export the report',
-					text: 'Preview the report first to confirm the filters are correct, then export the final output when ready.'
+					target: 'reports-preview',
+					title: 'Preview the report',
+					text: 'Use Preview Report to generate the report on the page, then review the summary cards, charts, and report table shown below.'
+				},
+				{
+					target: 'reports-export',
+					title: 'Export the report',
+					text: 'When the preview looks correct, use Export Report and choose either CSV or PDF depending on the format you need.'
 				}
 			]
 		}
@@ -246,6 +252,23 @@
 
 	/** @type {TrainingStep | null} */
 	let activeStep = null;
+
+	/** @typedef {'program_coordinator' | 'data_entry' | 'manager' | 'administrator'} TrainingRole */
+	/** @type {Record<TrainingRole, ModuleKey[]>} */
+	const roleModuleMap = {
+		program_coordinator: ['basics', 'attendance', 'participants', 'programs'],
+		data_entry: ['basics', 'participants', 'find', 'programs'],
+		manager: ['basics', 'attendance', 'participants', 'find', 'programs', 'reports'],
+		administrator: ['basics', 'attendance', 'participants', 'find', 'programs', 'reports']
+	};
+
+	$: staffRole = data?.staff?.staff_role ?? null;
+	$: allowedModuleKeys = staffRole ? roleModuleMap[staffRole] : [];
+	$: visibleModules = modules.filter((module) => allowedModuleKeys.includes(module.key));
+
+	$: if (selectedModuleKey && !allowedModuleKeys.includes(selectedModuleKey)) {
+		closeModule();
+	}
 
 	$: selectedModule = modules.find((module) => module.key === selectedModuleKey) || null;
 	$: currentSteps = selectedModule ? selectedModule.steps : [];
@@ -391,24 +414,30 @@
 		let dialogTop = Math.max(overlayTop + 18, Math.min(top, lowerBound));
 		let dialogLeft = left + width + gap;
 
-		if (dialogLeft + dialogWidth > viewportWidth - 18) {
+		if (activeStep.target === 'reports-preview') {
 			placement = 'left';
-			dialogLeft = left - dialogWidth - gap;
-		}
+			dialogLeft = 22;
+			dialogTop = Math.max(overlayTop + 18, Math.min(top + 8, lowerBound));
+		} else {
+			if (dialogLeft + dialogWidth > viewportWidth - 18) {
+				placement = 'left';
+				dialogLeft = left - dialogWidth - gap;
+			}
 
-		if (dialogLeft < 18) {
-			placement = 'bottom';
-			dialogLeft = Math.max(18, Math.min(left, viewportWidth - dialogWidth - 18));
-			dialogTop = top + height + gap;
-		}
+			if (dialogLeft < 18) {
+				placement = 'bottom';
+				dialogLeft = Math.max(18, Math.min(left, viewportWidth - dialogWidth - 18));
+				dialogTop = top + height + gap;
+			}
 
-		if (placement === 'bottom' && dialogTop + dialogHeight > viewportHeight - 18) {
-			placement = 'top';
-			dialogTop = top - dialogHeight - gap;
-		}
+			if (placement === 'bottom' && dialogTop + dialogHeight > viewportHeight - 18) {
+				placement = 'top';
+				dialogTop = top - dialogHeight - gap;
+			}
 
-		dialogTop = Math.max(overlayTop + 18, Math.min(dialogTop, lowerBound));
-		dialogLeft = Math.max(18, Math.min(dialogLeft, viewportWidth - dialogWidth - 18));
+			dialogTop = Math.max(overlayTop + 18, Math.min(dialogTop, lowerBound));
+			dialogLeft = Math.max(18, Math.min(dialogLeft, viewportWidth - dialogWidth - 18));
+}
 
 		dialogPlacement = placement;
 		dialogStyle = `top:${dialogTop}px; left:${dialogLeft}px;`;
@@ -425,7 +454,7 @@
 
 <section class="training-page">
 	<div class="sidebar-wrap" bind:this={sidebarWrapper}>
-		<SidebarNav currentKey="training" />
+		<SidebarNav currentKey="training" staffRole={data.staff?.staff_role ?? null} />
 	</div>
 
 	<div class="main-content">
@@ -464,28 +493,35 @@
 				<p class="section-copy">Select a module card to start the guided tour.</p>
 
 				<div class="card-grid">
-					{#each modules as module}
-						<div
-							class="training-card"
-							style={`--card-color: ${module.color};`}
-							role="button"
-							tabindex="0"
-							on:click={() => openModule(module.key)}
-							on:keydown={(event) => handleModuleCardKeydown(event, module.key)}
-						>
-							<div class="card-top">
-								<div class="card-icon">{module.icon}</div>
-								<h3>{module.title}</h3>
-							</div>
-
-							<p>{module.summary}</p>
-
-							<div class="card-actions">
-								<span class="secondary-btn faux-btn">Open walkthrough</span>
-								<a class="primary-btn" href={module.href} on:click|stopPropagation>Open page</a>
-							</div>
+					{#if visibleModules.length === 0}
+						<div class="intro-card empty-training-card">
+							<h3>No training modules available</h3>
+							<p>Your current role does not have any training modules assigned yet.</p>
 						</div>
-					{/each}
+					{:else}
+						{#each visibleModules as module}
+							<div
+								class="training-card"
+								style={`--card-color: ${module.color};`}
+								role="button"
+								tabindex="0"
+								on:click={() => openModule(module.key)}
+								on:keydown={(event) => handleModuleCardKeydown(event, module.key)}
+							>
+								<div class="card-top">
+									<div class="card-icon">{module.icon}</div>
+									<h3>{module.title}</h3>
+								</div>
+
+								<p>{module.summary}</p>
+
+								<div class="card-actions">
+									<span class="secondary-btn faux-btn">Open walkthrough</span>
+									<a class="primary-btn" href={module.href} on:click|stopPropagation>Open page</a>
+								</div>
+							</div>
+						{/each}
+					{/if}
 				</div>
 			</div>
 		{:else}
@@ -516,7 +552,7 @@
 									<p>Register new participants or assign them into a program.</p>
 								</div>
 								<div class="dashboard-card card-purple">
-									<h4>Add Program</h4>
+									<h4>Browse Program</h4>
 									<p>Register information of new programs.</p>
 								</div>
 								<div class="dashboard-card card-orange">
@@ -660,7 +696,7 @@
 						<div class="page-mock">
 							<div class="mock-title-row">
 								<div>
-									<h3>Add Program</h3>
+									<h3>Browse Program</h3>
 									<p>Create a new program and save its main details for future attendance and reporting.</p>
 								</div>
 								<div class="mock-link-btn">Back to Dashboard</div>
@@ -704,31 +740,156 @@
 							<div class="mock-title-row">
 								<div>
 									<h3>View Reports</h3>
-									<p>Build and preview reports by date range, program type, age group and gender.</p>
+									<p>Build attendance and demographic reports by date, program and participant profile fields.</p>
 								</div>
 								<div class="mock-link-btn">Back to Dashboard</div>
 							</div>
+
 							<div class="mock-panel reports-panel">
 								<h4>Report Filters</h4>
-								<div class="frequency-row mock-target" use:registerTarget={'reports-frequency'} class:is-highlighted={activeStep?.target === 'reports-frequency'}>
-									<span>Weekly</span>
-									<span class="active-pill">Monthly</span>
-									<span>Quarterly</span>
-									<span>Annually</span>
-									<span>Custom Range</span>
+
+								<div
+									class="reports-period-block mock-target"
+									use:registerTarget={'reports-period'}
+									class:is-highlighted={activeStep?.target === 'reports-period'}
+								>
+									<div class="frequency-row">
+										<span>Weekly</span>
+										<span class="active-pill">Monthly</span>
+										<span>Quarterly</span>
+										<span>Annually</span>
+										<span>Custom Range</span>
+									</div>
+
+									<div class="two-field-row">
+										<div class="field-box">
+											<span>Start date</span>
+											<strong>2026/03/11</strong>
+										</div>
+										<div class="field-box">
+											<span>End date</span>
+											<strong>2026/04/09</strong>
+										</div>
+									</div>
 								</div>
-								<div class="two-field-row mock-target" use:registerTarget={'reports-dates'} class:is-highlighted={activeStep?.target === 'reports-dates'}>
-									<div class="field-box"><span>Start date</span><strong>2026/01/01</strong></div>
-									<div class="field-box"><span>End date</span><strong>2026/03/31</strong></div>
+
+								<div
+									class="two-field-row mock-target"
+									use:registerTarget={'reports-program-filters'}
+									class:is-highlighted={activeStep?.target === 'reports-program-filters'}
+								>
+									<div class="field-box">
+										<span>Program category</span>
+										<strong>All program categories</strong>
+									</div>
+									<div class="field-box">
+										<span>Program</span>
+										<strong>All programs</strong>
+									</div>
 								</div>
-								<div class="three-field-row mock-target" use:registerTarget={'reports-demographics'} class:is-highlighted={activeStep?.target === 'reports-demographics'}>
-									<div class="field-box"><span>Program Type</span><strong>All program types</strong></div>
-									<div class="field-box"><span>Program</span><strong>All programs</strong></div>
-									<div class="field-box"><span>Age Group / Gender</span><strong>All age groups / all genders</strong></div>
+
+								<div
+									class="reports-participant-grid mock-target"
+									use:registerTarget={'reports-participant-filters'}
+									class:is-highlighted={activeStep?.target === 'reports-participant-filters'}
+								>
+									<div class="field-box">
+										<span>Age group</span>
+										<strong>All age groups</strong>
+									</div>
+									<div class="field-box">
+										<span>Gender</span>
+										<strong>All genders</strong>
+									</div>
+									<div class="field-box">
+										<span>ATSI status</span>
+										<strong>All ATSI statuses</strong>
+									</div>
+									<div class="field-box">
+										<span>CALD background</span>
+										<strong>All CALD backgrounds</strong>
+									</div>
+									<div class="field-box">
+										<span>Council</span>
+										<strong>All councils</strong>
+									</div>
+									<div class="field-box">
+										<span>Township</span>
+										<strong>All townships</strong>
+									</div>
 								</div>
-								<div class="report-action-row mock-target" use:registerTarget={'reports-actions'} class:is-highlighted={activeStep?.target === 'reports-actions'}>
-									<button type="button">Preview Report</button>
-									<button type="button" class="export-btn">Export Report</button>
+
+								<div
+									class="preview-action mock-target"
+									use:registerTarget={'reports-preview'}
+									class:is-highlighted={activeStep?.target === 'reports-preview'}
+								>
+									<div class="preview-action-bar">
+										<button type="button" class="secondary-btn preview-mock-btn">Preview Report</button>
+									</div>
+
+									<div class="report-preview-mock">
+										<div class="preview-top-row">
+											<div class="preview-summary-card">
+												<h5>Unique Participants</h5>
+												<p>28</p>
+											</div>
+											<div class="preview-summary-card">
+												<h5>Total Attendances</h5>
+												<p>62</p>
+											</div>
+											<div class="preview-summary-card">
+												<h5>Total Records</h5>
+												<p>74</p>
+											</div>
+											<div class="preview-summary-card">
+												<h5>Attendance Rate</h5>
+												<p>84%</p>
+											</div>
+										</div>
+
+										<div class="preview-table-card">
+											<h5>Program Summary Table</h5>
+											<div class="preview-table">
+												<div class="preview-table-head">
+													<span>Program</span>
+													<span>Category</span>
+													<span>Participants</span>
+													<span>Attendances</span>
+												</div>
+												<div class="preview-table-row">
+													<span>Walking Groups</span>
+													<span>Healthy Living</span>
+													<span>10</span>
+													<span>24</span>
+												</div>
+												<div class="preview-table-row">
+													<span>Community Shed</span>
+													<span>Interest &amp; Social</span>
+													<span>8</span>
+													<span>18</span>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+
+								<div
+									class="export-action mock-target"
+									use:registerTarget={'reports-export'}
+									class:is-highlighted={activeStep?.target === 'reports-export'}
+								>
+									<div class="export-toolbar">
+										<div class="export-split-btn">
+											<button type="button" class="export-btn">Export Report</button>
+											<button type="button" class="export-arrow-btn">▾</button>
+										</div>
+
+										<div class="export-options-mock">
+											<div class="export-option">Export as PDF</div>
+											<div class="export-option">Export as CSV</div>
+										</div>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -789,6 +950,9 @@
 		flex-shrink: 0;
 		position: relative;
 		z-index: 1;
+		align-self: stretch;
+		display: flex;
+		min-height: 100%;
 	}
 
 	.main-content {
@@ -835,8 +999,7 @@
 	.secondary-btn,
 	.primary-btn,
 	.mock-link-btn,
-	.detail-actions button,
-	.report-action-row button {
+	.detail-actions button {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
@@ -853,8 +1016,7 @@
 	}
 
 	.primary-btn,
-	.inline-btn,
-	.report-action-row .export-btn {
+	.inline-btn {
 		background: #20b9b0;
 		border-color: #20b9b0;
 		color: #ffffff;
@@ -863,14 +1025,12 @@
 	.dashboard-btn:hover,
 	.secondary-btn:hover,
 	.mock-link-btn:hover,
-	.detail-actions button:hover,
-	.report-action-row button:hover {
+	.detail-actions button:hover {
 		background: #f9fafb;
 	}
 
 	.primary-btn:hover,
-	.inline-btn:hover,
-	.report-action-row .export-btn:hover {
+	.inline-btn:hover {
 		background: #17a79e;
 	}
 
@@ -1114,7 +1274,6 @@
 	}
 
 	.two-field-row,
-	.three-field-row,
 	.three-panel-grid,
 	.program-form-grid,
 	.find-grid {
@@ -1126,7 +1285,6 @@
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
-	.three-field-row,
 	.three-panel-grid,
 	.program-form-grid {
 		grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1307,10 +1465,178 @@
 		background: #ecfeff;
 	}
 
-	.report-action-row {
+	.reports-period-block {
 		display: flex;
+		flex-direction: column;
+		gap: 18px;
+	}
+
+	.reports-participant-grid {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 18px;
+	}
+
+	.preview-action {
+		border: 1px solid #d9d9d9;
+		border-radius: 22px;
+		background: #ffffff;
+		padding: 18px;
+	}
+
+	.preview-action-bar {
+		display: flex;
+		justify-content: flex-start;
+		align-items: center;
+		margin-bottom: 16px;
+	}
+
+	.report-preview-mock {
+		border: 1px solid #e5e7eb;
+		border-radius: 20px;
+		background: #f8fafc;
+		padding: 18px;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+	}
+
+	.preview-mock-btn {
+		padding: 12px 22px;
+		min-height: 52px;
+		border-radius: 18px;
+		font-size: 15px;
+		font-weight: 700;
+	}
+
+	.preview-top-row {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 12px;
+	}
+
+	.preview-summary-card {
+		border: 1px solid #d9d9d9;
+		border-radius: 18px;
+		background: #ffffff;
+		padding: 14px;
+	}
+
+	.preview-summary-card h5,
+	.preview-table-card h5 {
+		margin: 0 0 8px;
+		font-size: 14px;
+		font-weight: 700;
+		color: #152238;
+	}
+
+	.preview-summary-card p {
+		margin: 0;
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: #152238;
+	}
+
+	.preview-table-card {
+		border: 1px solid #d9d9d9;
+		border-radius: 18px;
+		background: #ffffff;
+		padding: 14px;
+	}
+
+	.preview-table {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.preview-table-head,
+	.preview-table-row {
+		display: grid;
+		grid-template-columns: 1.4fr 1.2fr 0.8fr 0.8fr;
+		gap: 10px;
+		font-size: 13px;
+	}
+
+	.preview-table-head {
+		font-weight: 700;
+		color: #152238;
+		padding-bottom: 8px;
+		border-bottom: 1px solid #e5e7eb;
+	}
+
+	.preview-table-row {
+		color: #475569;
+	}
+
+	.export-action {
+		display: inline-block;
+		width: fit-content;
+		border: 1px solid #d9d9d9;
+		border-radius: 22px;
+		background: #ffffff;
+		padding: 18px;
+	}
+
+	.export-toolbar {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
 		gap: 14px;
-		flex-wrap: wrap;
+	}
+
+	.export-split-btn {
+		display: inline-flex;
+		align-items: stretch;
+		border-radius: 18px;
+		overflow: hidden;
+	}
+
+	.export-btn,
+	.export-arrow-btn {
+		border: none;
+		background: #20b9b0;
+		color: #ffffff;
+		font-size: 15px;
+		font-weight: 700;
+		padding: 12px 18px;
+	}
+
+	.export-arrow-btn {
+		padding: 12px 14px;
+		border-left: 1px solid rgba(255, 255, 255, 0.35);
+	}
+
+	.export-options-mock {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		min-width: 340px;
+		padding: 18px;
+		border: 1px solid #d9d9d9;
+		border-radius: 24px;
+		background: #ffffff;
+	}
+
+	.export-option {
+		border: 1px solid #d9d9d9;
+		border-radius: 18px;
+		background: #ffffff;
+		padding: 14px 18px;
+		font-size: 14px;
+		color: #152238;
+	}
+
+	@media (max-width: 1100px) {
+		.reports-participant-grid,
+		.preview-top-row {
+			grid-template-columns: 1fr;
+		}
+
+		.export-options-mock {
+			min-width: 100%;
+			width: 100%;
+	}
 	}
 
 	.mock-target.is-highlighted,
@@ -1413,7 +1739,6 @@
 		}
 
 		.two-field-row,
-		.three-field-row,
 		.three-panel-grid,
 		.program-form-grid,
 		.find-grid,

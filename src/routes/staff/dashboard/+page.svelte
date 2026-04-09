@@ -14,7 +14,7 @@
 	 * }} DashboardCard
 	 */
 
-	/** @type {{ data: PageData }} */
+	/** @type {{ data: import('./$types').PageData }} */
 	let { data } = $props();
 
 	const firstName = $derived(data?.staff?.full_name?.split(' ')[0] || 'there');

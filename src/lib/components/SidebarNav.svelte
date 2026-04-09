@@ -1,7 +1,12 @@
 <svelte:options runes={false} />
 
 <script>
+	/** @typedef {'program_coordinator' | 'data_entry' | 'manager' | 'administrator'} StaffRole */
+
 	export let currentKey = '';
+
+	/** @type {StaffRole | null} */
+	export let staffRole = null;
 
 	let sidebarCollapsed = false;
 
@@ -13,6 +18,16 @@
 		{ key: 'reports', label: 'View Reports', short: '▥', color: '#14b8a6', href: '/staff/reports' },
 		{ key: 'training', label: 'Start Training', short: 'i', color: '#64748b', href: '/staff/training' }
 	];
+
+	const roleMenuMap = {
+		program_coordinator: ['attendance', 'participants', 'programs', 'training'],
+		data_entry: ['participants', 'programs', 'search', 'training'],
+		manager: ['attendance', 'participants', 'programs', 'search', 'reports', 'training'],
+		administrator: ['attendance', 'participants', 'programs', 'search', 'reports', 'training']
+	};
+
+	$: allowedKeys = staffRole ? roleMenuMap[staffRole] : [];
+	$: visibleMenuItems = menuItems.filter((item) => allowedKeys.includes(item.key));
 
 	function toggleSidebar() {
 		sidebarCollapsed = !sidebarCollapsed;
@@ -27,7 +42,7 @@
 	</div>
 
 	<nav class="menu">
-		{#each menuItems as item}
+		{#each visibleMenuItems as item}
 			<a
 				class="menu-item"
 				class:active={currentKey === item.key}

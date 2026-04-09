@@ -6,7 +6,6 @@
 	import Header from '$lib/components/Header.svelte';
 	import SidebarNav from '$lib/components/SidebarNav.svelte';
 
-	/** @type {import('./$types').PageData} */
 	export let data;
 
 	/** @type {any} */
@@ -629,7 +628,7 @@
 <Header showLogout={true} />
 
 <section class="participants-page">
-	<SidebarNav currentKey="participants" />
+	<SidebarNav currentKey="participants" staffRole={data?.staff?.staff_role ?? null} />
 
 	<div class="main-content">
 		<div class="page-header">

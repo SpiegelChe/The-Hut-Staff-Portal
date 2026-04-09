@@ -98,7 +98,7 @@
 		</label>
 
 		{#if timeoutMessage}
-			<p class="info">You have been signed out after 30 minutes of inactivity.</p>
+			<p class="info">You have been signed out for inactivity.</p>
 		{/if}
 
 		{#if errorMessage}

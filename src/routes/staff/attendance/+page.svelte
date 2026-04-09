@@ -4,6 +4,7 @@
 	import Header from '$lib/components/Header.svelte';
 	import SidebarNav from '$lib/components/SidebarNav.svelte';
 
+	export let data;
 	let searchText = '';
 	let selectedCategory = 'all';
 	let selectedDate = 'all';
@@ -95,7 +96,7 @@
 <Header showLogout={true} />
 
 <section class="attendance-page">
-	<SidebarNav currentKey="attendance" />
+	<SidebarNav currentKey="attendance" staffRole={data?.staff?.staff_role ?? null} />
 
 	<div class="main-content">
 		<div class="page-header">
