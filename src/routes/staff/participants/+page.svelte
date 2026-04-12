@@ -51,16 +51,57 @@
 
 	/**
 	 * @typedef {{
+	 * 	key: string,
+	 * 	label: string,
+	 * 	type: 'text' | 'textarea' | 'select' | 'checkboxGroup' | 'date',
+	 * 	required?: boolean,
+	 * 	helpText?: string,
+	 * 	introText?: string,
+	 * 	options?: string[],
+	 * 	showWhen?: string,
+	 * 	fullWidth?: boolean
+	 * }} ProgramFieldConfig
+	 */
+
+	/**
+	 * @typedef {{
+	 * 	field: 'programParticipationConsent' | 'parentGuardianConsent' | 'medicalRiskAcknowledged' | 'ambulanceAuthorisation' | 'photoConsentForProgram',
+	 * 	label: string,
+	 * 	required?: boolean,
+	 * 	fullWidth?: boolean
+	 * }} ProgramConsentConfig
+	 */
+
+	/**
+	 * @typedef {{
+	 * 	title?: string,
+	 * 	text?: string,
+	 * 	bullets?: string[]
+	 * }} ProgramInfoSection
+	 */
+
+	/**
+	 * @typedef {{
 	 * 	membershipType: string,
-	 * 	status: string,
 	 * 	programParticipationConsent: boolean,
 	 * 	parentGuardianConsent: boolean,
 	 * 	medicalRiskAcknowledged: boolean,
 	 * 	ambulanceAuthorisation: boolean,
 	 * 	photoConsentForProgram: boolean,
 	 * 	programNotes: string,
-	 * 	additionalInfo: string
+	 * 	customData: Record<string, string | string[]>
 	 * }} ProgramDetails
+	 */
+
+	/**
+	 * @typedef {{
+	 * 	key: string,
+	 * 	membershipLabel?: string,
+	 * 	membershipOptions?: string[],
+	 * 	infoSections?: ProgramInfoSection[],
+	 * 	consentItems?: ProgramConsentConfig[],
+	 * 	fields: ProgramFieldConfig[]
+	 * }} ProgramFormConfig
 	 */
 
 	/**
@@ -126,7 +167,6 @@
 		{ value: 'prefer_not_to_say', label: 'Prefer not to say' }
 	];
 	const COUNCIL_OPTIONS = ['Adelaide Hills Council', 'Others'];
-	const MEMBERSHIP_OPTIONS = ['standard', 'supported', 'other'];
 	const COUNTRY_OPTIONS = [
 		'Australia', 'Afghanistan', 'Argentina', 'Bangladesh', 'Brazil', 'Cambodia', 'Canada', 'China', 'Colombia',
 		'Egypt', 'Fiji', 'France', 'Germany', 'Greece', 'Hong Kong', 'India', 'Indonesia', 'Iran', 'Iraq',
@@ -135,7 +175,154 @@
 		'Sri Lanka', 'Sudan', 'Syria', 'Taiwan', 'Thailand', 'Turkey', 'Ukraine', 'United Kingdom', 'United States',
 		'Vietnam', 'Zimbabwe'
 	];
-	const REGISTRATION_STATUS_OPTIONS = ['active', 'waitlist', 'withdrawn', 'completed'];
+	const DEFAULT_MEMBERSHIP_OPTIONS = ['Annual Membership', 'Quarterly'];
+	const PROGRAM_FORM_CONFIGS = {
+		community_shed: {
+			key: 'community_shed',
+			membershipLabel: 'Membership type',
+			membershipOptions: DEFAULT_MEMBERSHIP_OPTIONS,
+			infoSections: [
+				{
+					title: 'Privacy and Personal Information Protection Act 1998',
+					text: 'Your personal information is being collected to process this application. If you cannot provide or do not wish to provide this information The Hut may not be able to process your application. The Hut is to be regarded as the agency that holds the information. You may make application for access or amendment of the information held by The Hut.'
+				}
+			],
+			consentItems: [
+				{ field: 'programParticipationConsent', label: "The details provided by me are correct and I have read and understand the 'Privacy information'.", required: true, fullWidth: true }
+			],
+			fields: [
+				{ key: 'motivation', label: 'What motivates you to become a shed member?', type: 'textarea' },
+				{ key: 'supervisory_interest', label: 'Are you interested in being involved in supervisory roles or WHS Officer?', type: 'select', options: ['yes', 'no'] },
+				{ key: 'desired_days', label: 'Please indicate which day or days you wish to join', type: 'checkboxGroup', options: ['Tuesday', 'Thursday'], required: true },
+				{ key: 'skills_hobbies', label: 'Please list your work skills, interests and hobbies', type: 'textarea' },
+				{ key: 'medical_conditions', label: 'Medical Conditions', type: 'textarea' }
+			]
+		},
+		dungeons_and_dragons: {
+			key: 'dungeons_and_dragons',
+			membershipLabel: 'Membership type',
+			membershipOptions: DEFAULT_MEMBERSHIP_OPTIONS,
+			infoSections: [
+				{
+					title: 'Behaviour Code',
+					text: 'In order to ensure your safety within the program we ask you to agree to the following behaviour code:',
+					bullets: [
+						'Follow all reasonable requests given by the DM.',
+						'Only leave The Hut Community Centre building with the person authorised to collect me, unless I have an alternative arrangement made.',
+						'Treat every person with respect and consideration, free from discrimination or harassment.',
+						'Work in a safe manner.',
+						'Raise any issues or concerns with the DM or Community Development Team.',
+						'Notify The Hut by calling 8339 4400 if not attending a session.'
+					]
+				}
+			],
+			consentItems: [
+				{ field: 'programParticipationConsent', label: "I agree to follow the Dungeon and Dragon's behaviour code.", required: true },
+				{ field: 'parentGuardianConsent', label: 'I consent to the participation of my child in Dungeon and Dragons to be conducted at The Hut Community Centre. I understand that transport is not provided for this activity and that pick up by an authorised person is mandatory unless advised in the section above. I also understand that I must notify The Hut Community Centre if the participant is not attending a session.', required: true }
+			],
+			fields: [
+				{ key: 'leave_without_collection_permission', label: 'Do you give permission for your child to leave the centre after the session without being collected by a parent/guardian?', type: 'select', options: ['yes', 'no'], required: true },
+				{ key: 'leave_without_collection_details', label: 'If yes, please provide details', type: 'textarea', showWhen: 'field:leave_without_collection_permission=yes' },
+				{ key: 'photo_use_permissions', label: 'Photo consent options', type: 'checkboxGroup', options: ['The Hut website', "The Hut's Social media page", "The Hut's annual report", 'Brochures', 'Local media including The Courier & Weekend Herald', 'I do not allow my child to be photographed'], required: true }
+			]
+		},
+		fun_fitness: {
+			key: 'fun_fitness',
+			membershipLabel: 'Membership type',
+			membershipOptions: DEFAULT_MEMBERSHIP_OPTIONS,
+			consentItems: [
+				{ field: 'ambulanceAuthorisation', label: 'In the event of an emergency, I authorise the instructor to seek medical advice and call an ambulance if required, at my own expense.', required: true, fullWidth: true }
+			],
+			fields: [
+				{ key: 'health_conditions', label: 'Health conditions', type: 'checkboxGroup', options: ['Asthma', 'Back Problems', 'Sight impairment', 'High Blood pressure', 'Arthritis', 'Joint Replacement', 'Stroke', 'Epilepsy', 'Other'] },
+				{ key: 'current_activity_level', label: 'Current level of activity', type: 'select', options: ['No regular exercise', 'Small amount of exercise', 'Regular Exercise'], required: true },
+				{ key: 'gp_clearance_comments', label: 'GP clearance comments', type: 'textarea', fullWidth: true, introText: 'Would you please confirm that there are no significant medical reasons that may exclude his/her participation in the above course. If in your opinion there are any special limitations would you, with the permission of the applicant, please comment below.' },
+				{ key: 'gp_name', label: 'GP name', type: 'text' },
+				{ key: 'gp_phone', label: 'GP phone', type: 'text' },
+				{ key: 'gp_clinic', label: 'Clinic', type: 'text' },
+				{ key: 'gp_date', label: 'Date', type: 'date' }
+			]
+		},
+		chi_kung_mens_moves: {
+			key: 'chi_kung_mens_moves',
+			membershipLabel: 'Membership type',
+			membershipOptions: DEFAULT_MEMBERSHIP_OPTIONS,
+			consentItems: [
+				{ field: 'medicalRiskAcknowledged', label: 'I understand that my Chi Kung teacher will make every effort to ensure that I work safely during classes, but also understand that it is my responsibility to be careful and to keep my teacher informed of any changes in health.', required: true, fullWidth: true },
+				{ field: 'programParticipationConsent', label: 'If you are being treated for any health conditions or have a concern, you are advised to obtain medical consent from your doctor or specialist before undertaking this class.', required: true, fullWidth: true }
+			],
+			fields: [
+				{ key: 'health_conditions', label: 'Health conditions', type: 'checkboxGroup', fullWidth: true, options: ['Asthma', 'Back Problems', 'Diabetes', 'High blood pressure', 'Arthritis', 'Recent fracture', 'Insomnia', 'Menopause', 'Difficulty Hearing', 'Low Blood pressure', 'Repetitive Strain injury', 'Hernia', 'Recent Surgery', 'Osteoporosis', 'Heart Issues', 'MS', 'Detached Retina', 'Other'] },
+				{ key: 'medication_affecting_ability', label: 'Are you taking any medication that will affect your ability to do Chi Kung?', type: 'select', fullWidth: true, options: ['yes', 'no'] },
+				{ key: 'medication_affecting_ability_details', label: 'If yes, please provide details', type: 'textarea', fullWidth: true, showWhen: 'field:medication_affecting_ability=yes' },
+				{ key: 'recent_medical_procedures', label: 'Have you had any medical procedures in the last 12 months?', type: 'select', fullWidth: true, options: ['yes', 'no'] },
+				{ key: 'recent_medical_procedures_details', label: 'If yes, please provide details', type: 'textarea', fullWidth: true, showWhen: 'field:recent_medical_procedures=yes' },
+				{ key: 'first_chi_kung_experience', label: 'Is this your first experience of Chi Kung?', type: 'select', fullWidth: true, options: ['yes', 'no'] },
+				{ key: 'first_chi_kung_experience_details', label: 'If yes, please provide details', type: 'textarea', fullWidth: true, showWhen: 'field:first_chi_kung_experience=yes' }
+			]
+		},
+		music_makers: {
+			key: 'music_makers',
+			membershipLabel: 'Membership type',
+			membershipOptions: DEFAULT_MEMBERSHIP_OPTIONS,
+			fields: [
+				{ key: 'heard_about_program', label: 'How did you hear about Music Makers?', type: 'select', options: ['Brochure', 'Referral', 'Family/Friend', 'Media', 'Web', 'Other'] },
+				{ key: 'heard_about_program_other', label: 'If Other, please provide details', type: 'text', showWhen: 'field:heard_about_program=Other' },
+				{ key: 'newsletter_opt_in', label: 'Would you like to receive The Hut monthly newsletter?', type: 'select', options: ['yes', 'no'] }
+			]
+		},
+		strength_balance: {
+			key: 'strength_balance',
+			membershipLabel: 'Membership type',
+			membershipOptions: DEFAULT_MEMBERSHIP_OPTIONS,
+			consentItems: [
+				{ field: 'medicalRiskAcknowledged', label: 'I understand that all safety precautions will be observed but agree to accept full responsibility for any loss or damage to personal property or any injury which may be sustained while taking part in the class.', required: true, fullWidth: true },
+				{ field: 'ambulanceAuthorisation', label: "I'm aware that in the event of a medical emergency an ambulance may be called for me at my expense.", required: true, fullWidth: true }
+			],
+			fields: [
+				{ key: 'health_conditions', label: 'Health conditions', type: 'checkboxGroup', fullWidth: true, options: ['Asthma', 'Back Problems', 'Sight impairment', 'High Blood pressure', 'Arthritis', 'Joint Replacement', 'Stroke', 'Epilepsy', 'Other'] },
+				{ key: 'condition_medication', label: 'Medication taken for these conditions', type: 'textarea' },
+				{ key: 'current_activity_level', label: 'Current level of activity', type: 'select', options: ['No regular exercise', 'Small amount of exercise', 'Regular Exercise'], required: true },
+				{ key: 'gp_clearance_comments', label: 'GP clearance comments', type: 'textarea', fullWidth: true, introText: 'Would you please confirm that there are no significant medical reasons that may exclude his/her participation in the above course. If in your opinion there are any special limitations would you, with the permission of the applicant, please comment below.' },
+				{ key: 'gp_name', label: 'GP name', type: 'text' },
+				{ key: 'gp_phone', label: 'GP phone', type: 'text' },
+				{ key: 'gp_clinic', label: 'Clinic', type: 'text' },
+				{ key: 'gp_date', label: 'Date', type: 'date' }
+			]
+		},
+		walking_group: {
+			key: 'walking_group',
+			membershipLabel: 'Membership type',
+			membershipOptions: DEFAULT_MEMBERSHIP_OPTIONS,
+			infoSections: [
+				{
+					title: 'Medical Requirements',
+					text: 'If you have a history of HIGH BLOOD PRESSURE or any HEART CONDITION, BACK PROBLEM, ARTHRITIS or other medical condition that might be aggravated by walking you are advised to obtain a MEDICAL CLEARANCE from your GP before walking with The Hut.'
+				}
+			],
+			consentItems: [
+				{ field: 'programParticipationConsent', label: 'I understand that all safety precautions will be observed and that I am to adhere to the safety directions of the Walk Leader.', required: true, fullWidth: true },
+				{ field: 'medicalRiskAcknowledged', label: "I acknowledge that I undertake walks at my own risk and that The Hut accepts no responsibility for loss or injury to any person taking part in The Hut's Walking Program.", required: true, fullWidth: true },
+				{ field: 'ambulanceAuthorisation', label: 'In the event of an emergency, I authorise the Walk leader to seek medical advice and call an ambulance if required, at my own expense.', required: true, fullWidth: true }
+			],
+			fields: [
+				{ key: 'ambulance_fund_member', label: 'Are you a member of an Ambulance Fund?', type: 'select', options: ['yes', 'no'] },
+				{ key: 'walk_leader_interest', label: 'Would you like to be a Hut Walk Leader?', type: 'select', options: ['yes', 'no'] },
+				{ key: 'first_aid_certificate', label: 'Do you have a current First Aid Certificate?', type: 'select', options: ['yes', 'no'] },
+				{ key: 'first_aid_expiry', label: 'If yes, when does it expire?', type: 'text' },
+				{ key: 'walking_days', label: 'Preferred walking days', type: 'checkboxGroup', options: ['Monday (same walk as Wednesday)', 'Tuesday', 'Wednesday (same walk as Monday)', 'Friday'], required: true },
+				{ key: 'walking_registration_fee', label: 'Registration fees', type: 'select', required: true, options: ['Annual Single Member', 'Annual Family', 'Casual (up to four weeks)'], helpText: 'Annual Single Member $10.00\nAnnual Family $15.00\nCasual (up to four weeks) $5.00' }
+			]
+		},
+		default_program: {
+			key: 'default_program',
+			membershipLabel: 'Membership type',
+			membershipOptions: DEFAULT_MEMBERSHIP_OPTIONS,
+			fields: [
+				{ key: 'program_form_notes', label: 'Additional program-specific information', type: 'textarea' }
+			]
+		}
+	};
 	const dayOptions = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
 	const monthOptions = [
 		{ value: '01', label: 'January' },
@@ -154,19 +341,20 @@
 	const currentYear = new Date().getFullYear();
 	const yearOptions = Array.from({ length: 100 }, (_, i) => String(currentYear - i));
 	const TOTAL_STEPS = 3;
+	const POSTCODE_REGEX = /^\d{4}$/;
+	const SIMPLE_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 	/** @returns {ProgramDetails} */
 	function emptyProgramDetails() {
 		return {
 			membershipType: '',
-			status: 'active',
 			programParticipationConsent: false,
 			parentGuardianConsent: false,
 			medicalRiskAcknowledged: false,
 			ambulanceAuthorisation: false,
 			photoConsentForProgram: false,
 			programNotes: '',
-			additionalInfo: ''
+			customData: {}
 		};
 	}
 
@@ -257,6 +445,73 @@
 		return /** @type {HTMLInputElement} */ (event.currentTarget).checked;
 	}
 
+	/** @param {string} programName */
+	function resolveProgramConfigKey(programName) {
+		const name = programName.trim().toLowerCase();
+		if (name.includes('community shed')) return 'community_shed';
+		if (name.includes('dungeons') || name.includes('dragon')) return 'dungeons_and_dragons';
+		if (name.includes('fun') && name.includes('fitness')) return 'fun_fitness';
+		if (name.includes('chi kung') || (name.includes('men') && name.includes('moves'))) return 'chi_kung_mens_moves';
+		if (name.includes('music makers')) return 'music_makers';
+		if (name.includes('strength') && name.includes('balance')) return 'strength_balance';
+		if (name.includes('walking')) return 'walking_group';
+		return 'default_program';
+	}
+
+	/** @param {string} programName */
+	function getProgramFormConfig(programName) {
+		const key = resolveProgramConfigKey(programName);
+		return /** @type {ProgramFormConfig} */ (PROGRAM_FORM_CONFIGS[key] || PROGRAM_FORM_CONFIGS.default_program);
+	}
+
+	/** @param {string} programName */
+	function getMembershipOptions(programName) {
+		const config = getProgramFormConfig(programName);
+		return config.membershipOptions || DEFAULT_MEMBERSHIP_OPTIONS;
+	}
+
+	/** @param {string} programName */
+	function getMembershipLabel(programName) {
+		const config = getProgramFormConfig(programName);
+		return config.membershipLabel || 'Membership type';
+	}
+
+	/**
+	 * @param {ProgramFieldConfig} field
+	 * @param {string} programId
+	 */
+	function shouldShowProgramField(field, programId) {
+		if (!field.showWhen || field.showWhen === 'always') return true;
+		if (field.showWhen === 'under18') return isParticipantUnder18();
+		if (field.showWhen.startsWith('field:')) {
+			const expression = field.showWhen.slice(6);
+			const [fieldKey, expectedValue] = expression.split('=');
+			if (!fieldKey) return true;
+			return getProgramCustomValue(programId, fieldKey) === (expectedValue || 'yes');
+		}
+		return true;
+	}
+
+	/** @param {string} programName */
+	function getProgramConsentItems(programName) {
+		const config = getProgramFormConfig(programName);
+		return config.consentItems || [];
+	}
+
+	/** @param {string} programName */
+	function getProgramInfoSections(programName) {
+		const config = getProgramFormConfig(programName);
+		return config.infoSections || [];
+	}
+
+	/**
+	 * @param {string} programId
+	 * @param {string} fieldKey
+	 */
+	function getProgramCustomSelectionCount(programId, fieldKey) {
+		return getProgramCustomList(programId, fieldKey).length;
+	}
+
 	/** @param {SearchParticipant} participant */
 	function getTownshipLabel(participant) {
 		if (participant.township_other) return participant.township_other;
@@ -291,6 +546,9 @@
 	let showLanguageDetails = false;
 	let showSupportDetails = false;
 	let showTransportDetails = false;
+	/** @type {Record<string, boolean>} */
+	let touchedFields = {};
+	let attemptedStepValidation = false;
 
 	$: stepPercent = `${(currentStep / TOTAL_STEPS) * 100}%`;
 	$: stepTitle = currentStep === 1
@@ -316,6 +574,8 @@
 		showSuccess = false;
 		error = '';
 		successMessage = '';
+		touchedFields = {};
+		attemptedStepValidation = false;
 	}
 
 	/** @param {string} programId */
@@ -358,45 +618,280 @@
 		};
 	}
 
+	/**
+	 * @param {string} programId
+	 * @param {string} fieldKey
+	 * @param {string | string[]} value
+	 */
+	function updateProgramCustomField(programId, fieldKey, value) {
+		const currentDetails = formData.programSpecificData[programId] || emptyProgramDetails();
+		formData = {
+			...formData,
+			programSpecificData: {
+				...formData.programSpecificData,
+				[programId]: {
+					...currentDetails,
+					customData: {
+						...currentDetails.customData,
+						[fieldKey]: value
+					}
+				}
+			}
+		};
+	}
+
+	/**
+	 * @param {string} programId
+	 * @param {string} fieldKey
+	 * @param {string} option
+	 */
+	function toggleProgramCustomCheckbox(programId, fieldKey, option) {
+		const currentDetails = formData.programSpecificData[programId] || emptyProgramDetails();
+		const currentValue = currentDetails.customData[fieldKey];
+		const selected = Array.isArray(currentValue) ? currentValue : [];
+		let nextValue = selected.includes(option)
+			? selected.filter((item) => item !== option)
+			: [...selected, option];
+
+		if (fieldKey === 'photo_use_permissions') {
+			const noPhotoOption = 'I do not allow my child to be photographed';
+			if (option === noPhotoOption && !selected.includes(option)) {
+				nextValue = [noPhotoOption];
+			} else if (option !== noPhotoOption && nextValue.includes(noPhotoOption)) {
+				nextValue = nextValue.filter((item) => item !== noPhotoOption);
+			}
+		}
+
+		updateProgramCustomField(programId, fieldKey, nextValue);
+	}
+
+	/**
+	 * @param {ProgramDetails} details
+	 */
+	function derivePhotoConsentValue(details) {
+		const selections = Array.isArray(details.customData.photo_use_permissions)
+			? details.customData.photo_use_permissions
+			: [];
+		if (selections.length === 0) return details.photoConsentForProgram;
+		return !selections.includes('I do not allow my child to be photographed');
+	}
+
+	/**
+	 * @param {string} programId
+	 * @param {string} fieldKey
+	 */
+	function getProgramCustomValue(programId, fieldKey) {
+		const details = formData.programSpecificData[programId] || emptyProgramDetails();
+		const value = details.customData[fieldKey];
+		return typeof value === 'string' ? value : '';
+	}
+
+	/**
+	 * @param {string} programId
+	 * @param {string} fieldKey
+	 */
+	function getProgramCustomList(programId, fieldKey) {
+		const details = formData.programSpecificData[programId] || emptyProgramDetails();
+		const value = details.customData[fieldKey];
+		return Array.isArray(value) ? value : [];
+	}
+
+	/** @param {string} field */
+	function touchField(field) {
+		touchedFields = { ...touchedFields, [field]: true };
+	}
+
+	/** @param {string[]} fields */
+	function touchFields(fields) {
+		/** @type {Record<string, boolean>} */
+		const nextTouched = { ...touchedFields };
+		for (const field of fields) nextTouched[field] = true;
+		touchedFields = nextTouched;
+	}
+
+	function getDateOfBirthValue() {
+		if (!formData.birthDay || !formData.birthMonth || !formData.birthYear) return null;
+		const dob = new Date(`${formData.birthYear}-${formData.birthMonth}-${formData.birthDay}T00:00:00`);
+		if (Number.isNaN(dob.getTime())) return null;
+		if (
+			dob.getFullYear() !== Number(formData.birthYear) ||
+			dob.getMonth() + 1 !== Number(formData.birthMonth) ||
+			dob.getDate() !== Number(formData.birthDay)
+		) {
+			return null;
+		}
+		return dob;
+	}
+
+	function isParticipantUnder18() {
+		const dob = getDateOfBirthValue();
+		if (!dob) return false;
+		const today = new Date();
+		let age = today.getFullYear() - dob.getFullYear();
+		const monthDiff = today.getMonth() - dob.getMonth();
+		if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+			age -= 1;
+		}
+		return age < 18;
+	}
+
+	/** @param {string} field */
+	function getFieldError(field) {
+		const dob = getDateOfBirthValue();
+		switch (field) {
+			case 'firstName':
+				return formData.firstName.trim() ? '' : 'First name is required.';
+			case 'lastName':
+				return formData.lastName.trim() ? '' : 'Last name is required.';
+			case 'gender':
+				return formData.gender ? '' : 'Gender is required.';
+			case 'birthDate':
+				if (!formData.birthDay || !formData.birthMonth || !formData.birthYear) {
+					return 'Please enter a complete date of birth.';
+				}
+				if (!dob) return 'Please enter a valid date of birth.';
+				if (dob > new Date()) return 'Date of birth cannot be in the future.';
+				return '';
+			case 'mobile':
+			case 'homePhone':
+				return formData.mobile.trim() || formData.homePhone.trim()
+					? ''
+					: 'Please provide at least one contact number.';
+			case 'email':
+				return !formData.email.trim() || SIMPLE_EMAIL_REGEX.test(formData.email.trim())
+					? ''
+					: 'Please enter a valid email address.';
+			case 'addressLine1':
+				return formData.addressLine1.trim() ? '' : 'Address line 1 is required.';
+			case 'postcode':
+				if (!formData.postcode.trim()) return 'Postcode is required.';
+				return POSTCODE_REGEX.test(formData.postcode.trim()) ? '' : 'Postcode must be 4 digits.';
+			case 'council':
+				return formData.council ? '' : 'Council is required.';
+			case 'councilOther':
+				return !isOtherCouncil || formData.councilOther.trim() ? '' : 'Please enter the council name.';
+			case 'townshipId':
+				return isOtherCouncil || formData.townshipId ? '' : 'Please select an Adelaide Hills township.';
+			case 'townshipOther':
+				return !isOtherCouncil || formData.townshipOther.trim() ? '' : 'Please enter the township name.';
+			case 'transportDetails':
+				return !showTransportDetails || formData.transportDetails.trim() ? '' : 'Please enter transport details.';
+			case 'emergency1Name':
+				return formData.emergency1Name.trim() ? '' : 'Emergency contact 1 name is required.';
+			case 'emergency1Phone':
+				return formData.emergency1Phone.trim() ? '' : 'Emergency contact 1 phone is required.';
+			default:
+				return '';
+		}
+	}
+
+	/** @param {string} field */
+	function shouldShowFieldError(field) {
+		if (!getFieldError(field)) return false;
+		if (field === 'mobile' || field === 'homePhone') {
+			return attemptedStepValidation || touchedFields.mobile || touchedFields.homePhone;
+		}
+		if (field === 'birthDate') {
+			return attemptedStepValidation || touchedFields.birthDay || touchedFields.birthMonth || touchedFields.birthYear;
+		}
+		return attemptedStepValidation || !!touchedFields[field];
+	}
+
+	/** @param {number} step */
+	function touchStepFields(step) {
+		if (step === 1) {
+			touchFields([
+				'firstName',
+				'lastName',
+				'gender',
+				'birthDay',
+				'birthMonth',
+				'birthYear',
+				'mobile',
+				'homePhone',
+				'email',
+				'addressLine1',
+				'postcode',
+				'council',
+				'townshipId',
+				'townshipOther',
+				'councilOther',
+				'transportDetails',
+				'emergency1Name',
+				'emergency1Phone'
+			]);
+		}
+	}
+
 	/** @param {number} step */
 	function validateStep(step) {
 		error = '';
+		attemptedStepValidation = true;
+		touchStepFields(step);
 
 		if (step === 1) {
-			if (!formData.firstName.trim()) return (error = 'First name is required.'), false;
-			if (!formData.lastName.trim()) return (error = 'Last name is required.'), false;
-			if (!formData.gender) return (error = 'Gender is required.'), false;
-			if (!formData.birthDay || !formData.birthMonth || !formData.birthYear) {
-				return (error = 'Please enter a complete date of birth.'), false;
+			const fieldsToCheck = [
+				'firstName',
+				'lastName',
+				'gender',
+				'birthDate',
+				'mobile',
+				'email',
+				'addressLine1',
+				'postcode',
+				'council',
+				isOtherCouncil ? 'councilOther' : 'townshipId',
+				isOtherCouncil ? 'townshipOther' : 'townshipId',
+				'transportDetails',
+				'emergency1Name',
+				'emergency1Phone'
+			];
+
+			for (const field of fieldsToCheck) {
+				const fieldError = getFieldError(field);
+				if (fieldError) {
+					error = fieldError;
+					return false;
+				}
 			}
-			if (!formData.mobile.trim() && !formData.homePhone.trim()) {
-				return (error = 'Please provide at least one contact number.'), false;
-			}
-			if (!formData.addressLine1.trim()) return (error = 'Address line 1 is required.'), false;
-			if (!formData.postcode.trim()) return (error = 'Postcode is required.'), false;
-			if (!formData.council) return (error = 'Council is required.'), false;
-			if (isOtherCouncil) {
-				if (!formData.councilOther.trim()) return (error = 'Please enter the council name.'), false;
-				if (!formData.townshipOther.trim()) return (error = 'Please enter the township name.'), false;
-			} else if (!formData.townshipId) {
-				return (error = 'Please select an Adelaide Hills township.'), false;
-			}
-			if (showTransportDetails && !formData.transportDetails.trim()) {
-				return (error = 'Please enter transport details.'), false;
-			}
-			if (!formData.emergency1Name.trim()) return (error = 'Emergency contact 1 name is required.'), false;
-			if (!formData.emergency1Phone.trim()) return (error = 'Emergency contact 1 phone is required.'), false;
 		}
 
 		if (step === 2 && formData.selectedProgramIds.length === 0) {
-			return (error = 'Please select at least one program.'), false;
+			error = 'Please select at least one program.';
+			return false;
 		}
 
 		if (step === 3) {
 			for (const programId of formData.selectedProgramIds) {
+				const program = programs.find((item) => item.program_id === programId);
 				const details = formData.programSpecificData[programId] || emptyProgramDetails();
-				if (!details.status) {
-					return (error = 'Please select a registration status for each chosen program.'), false;
+				if (!program) continue;
+				const config = getProgramFormConfig(program.program_name);
+
+				if (!details.membershipType) {
+					error = `Please select a membership type for ${program.program_name}.`;
+					return false;
+				}
+
+				for (const consentItem of config.consentItems || []) {
+					if (consentItem.required && !details[consentItem.field]) {
+						error = `Please complete the required consent for ${program.program_name}.`;
+						return false;
+					}
+				}
+
+				for (const field of config.fields) {
+					if (!shouldShowProgramField(field, programId) || !field.required) continue;
+					const value = details.customData[field.key];
+					if (field.type === 'checkboxGroup') {
+						if (!Array.isArray(value) || value.length === 0) {
+							error = `Please complete ${field.label} for ${program.program_name}.`;
+							return false;
+						}
+					} else if (typeof value !== 'string' || !value.trim()) {
+						error = `Please complete ${field.label} for ${program.program_name}.`;
+						return false;
+					}
 				}
 			}
 		}
@@ -407,11 +902,14 @@
 	function goNext() {
 		if (validateStep(currentStep)) {
 			currentStep = Math.min(currentStep + 1, TOTAL_STEPS);
+			error = '';
+			attemptedStepValidation = false;
 		}
 	}
 
 	function goBack() {
 		error = '';
+		attemptedStepValidation = false;
 		currentStep = Math.max(currentStep - 1, 1);
 	}
 
@@ -505,6 +1003,8 @@
 		event.preventDefault();
 		if (!validateStep(3)) return;
 
+		attemptedStepValidation = true;
+
 		loading = true;
 		error = '';
 		successMessage = '';
@@ -576,29 +1076,33 @@
 
 			const registrations = formData.selectedProgramIds.map((programId) => {
 				const details = formData.programSpecificData[programId] || emptyProgramDetails();
+				const program = programs.find((item) => item.program_id === programId);
+				const programConfig = getProgramFormConfig(program?.program_name || '');
+				const photoConsentForProgram = derivePhotoConsentValue(details);
 				return {
 					participant_id: participantId,
 					program_id: programId,
-					status: details.status || 'active',
+					status: 'active',
 					membership_type: details.membershipType || null,
 					program_participation_consent: details.programParticipationConsent,
 					parent_guardian_consent: details.parentGuardianConsent,
 					medical_risk_acknowledged: details.medicalRiskAcknowledged,
 					ambulance_authorisation: details.ambulanceAuthorisation,
-					photo_consent_for_program: details.photoConsentForProgram,
+					photo_consent_for_program: photoConsentForProgram,
 					registration_consent_at:
 						details.programParticipationConsent ||
 						details.parentGuardianConsent ||
 						details.medicalRiskAcknowledged ||
 						details.ambulanceAuthorisation ||
-						details.photoConsentForProgram
+						photoConsentForProgram
 							? new Date().toISOString()
 							: null,
 					registration_consent_by_role: 'staff',
 					notes: details.programNotes.trim() || null,
-					program_specific_data: details.additionalInfo.trim()
-						? { additional_info: details.additionalInfo.trim() }
-						: null
+					program_specific_data: {
+						form_key: programConfig.key,
+						values: details.customData
+					}
 				};
 			});
 
@@ -741,23 +1245,33 @@
 						<h3>Personal Information</h3>
 						<div class="form-grid two-col-grid">
 							<label>
-								<span>First name</span>
-								<input bind:value={formData.firstName} required />
+								<span class="field-label">Title</span>
+								<select bind:value={formData.title}>
+									<option value="">Select title</option>
+									{#each TITLE_OPTIONS as title}
+										<option value={title}>{title}</option>
+									{/each}
+								</select>
 							</label>
 
 							<label>
-								<span>Last name</span>
-								<input bind:value={formData.lastName} required />
+								<span class="field-label">First name <span class="required-marker">*</span></span>
+								<input bind:value={formData.firstName} class:invalid-field={shouldShowFieldError('firstName')} on:blur={() => touchField('firstName')} />
 							</label>
 
 							<label>
-								<span>Preferred name</span>
+								<span class="field-label">Last name <span class="required-marker">*</span></span>
+								<input bind:value={formData.lastName} class:invalid-field={shouldShowFieldError('lastName')} on:blur={() => touchField('lastName')} />
+							</label>
+
+							<label>
+								<span class="field-label">Preferred name</span>
 								<input bind:value={formData.preferredName} />
 							</label>
 
 							<label>
-								<span>Gender</span>
-								<select bind:value={formData.gender}>
+								<span class="field-label">Gender <span class="required-marker">*</span></span>
+								<select bind:value={formData.gender} class:invalid-field={shouldShowFieldError('gender')} on:blur={() => touchField('gender')}>
 									<option value="">Select gender</option>
 									{#each GENDER_OPTIONS as gender}
 										<option value={gender}>{gender}</option>
@@ -768,8 +1282,8 @@
 
 						<div class="form-grid three-col-grid top-gap">
 							<label>
-								<span>Day of birth</span>
-								<select bind:value={formData.birthDay}>
+								<span class="field-label">Day of birth <span class="required-marker">*</span></span>
+								<select bind:value={formData.birthDay} class:invalid-field={shouldShowFieldError('birthDate')} on:blur={() => touchField('birthDay')}>
 									<option value="">Day</option>
 									{#each dayOptions as day}
 										<option value={day}>{day}</option>
@@ -778,8 +1292,8 @@
 							</label>
 
 							<label>
-								<span>Month of birth</span>
-								<select bind:value={formData.birthMonth}>
+								<span class="field-label">Month of birth <span class="required-marker">*</span></span>
+								<select bind:value={formData.birthMonth} class:invalid-field={shouldShowFieldError('birthDate')} on:blur={() => touchField('birthMonth')}>
 									<option value="">Month</option>
 									{#each monthOptions as month}
 										<option value={month.value}>{month.label}</option>
@@ -788,8 +1302,8 @@
 							</label>
 
 							<label>
-								<span>Year of birth</span>
-								<select bind:value={formData.birthYear}>
+								<span class="field-label">Year of birth <span class="required-marker">*</span></span>
+								<select bind:value={formData.birthYear} class:invalid-field={shouldShowFieldError('birthDate')} on:blur={() => touchField('birthYear')}>
 									<option value="">Year</option>
 									{#each yearOptions as year}
 										<option value={year}>{year}</option>
@@ -800,18 +1314,20 @@
 
 						<div class="form-grid three-col-grid top-gap">
 							<label>
-								<span>Mobile</span>
-								<input bind:value={formData.mobile} />
+								<span class="field-label">Mobile <span class="required-marker">*</span></span>
+								<input bind:value={formData.mobile} class:invalid-field={shouldShowFieldError('mobile')} on:blur={() => touchField('mobile')} />
+								<small class="field-note">Enter mobile or home phone.</small>
 							</label>
 
 							<label>
-								<span>Home phone</span>
-								<input bind:value={formData.homePhone} />
+								<span class="field-label">Home phone <span class="required-marker">*</span></span>
+								<input bind:value={formData.homePhone} class:invalid-field={shouldShowFieldError('homePhone')} on:blur={() => touchField('homePhone')} />
+								<small class="field-note">At least one contact number is required.</small>
 							</label>
 
 							<label>
-								<span>Email</span>
-								<input type="email" bind:value={formData.email} />
+								<span class="field-label">Email</span>
+								<input type="email" bind:value={formData.email} class:invalid-field={shouldShowFieldError('email')} on:blur={() => touchField('email')} />
 							</label>
 						</div>
 					</div>
@@ -820,20 +1336,20 @@
 						<h3>Contact and Address</h3>
 						<div class="form-grid two-col-grid">
 							<label>
-								<span>Address line 1</span>
-								<input bind:value={formData.addressLine1} />
+								<span class="field-label">Address line 1 <span class="required-marker">*</span></span>
+								<input bind:value={formData.addressLine1} class:invalid-field={shouldShowFieldError('addressLine1')} on:blur={() => touchField('addressLine1')} />
 							</label>
 
 							<label>
-								<span>Address line 2</span>
+								<span class="field-label">Address line 2</span>
 								<input bind:value={formData.addressLine2} />
 							</label>
 						</div>
 
 						<div class="form-grid three-col-grid top-gap">
 							<label>
-								<span>Council</span>
-								<select bind:value={formData.council}>
+								<span class="field-label">Council <span class="required-marker">*</span></span>
+								<select bind:value={formData.council} class:invalid-field={shouldShowFieldError('council')} on:blur={() => touchField('council')}>
 									{#each COUNCIL_OPTIONS as council}
 										<option value={council}>{council}</option>
 									{/each}
@@ -841,11 +1357,11 @@
 							</label>
 
 							<label>
-								<span>Township</span>
+								<span class="field-label">Township <span class="required-marker">*</span></span>
 								{#if isOtherCouncil}
-									<input bind:value={formData.townshipOther} placeholder="Enter township" />
+									<input bind:value={formData.townshipOther} placeholder="Enter township" class:invalid-field={shouldShowFieldError('townshipOther')} on:blur={() => touchField('townshipOther')} />
 								{:else}
-									<select bind:value={formData.townshipId}>
+									<select bind:value={formData.townshipId} class:invalid-field={shouldShowFieldError('townshipId')} on:blur={() => touchField('townshipId')}>
 										<option value="">Select township</option>
 										{#each townships as township}
 											<option value={township.township_id}>{township.township_name}</option>
@@ -855,16 +1371,16 @@
 							</label>
 
 							<label>
-								<span>Postcode</span>
-								<input bind:value={formData.postcode} />
+								<span class="field-label">Postcode <span class="required-marker">*</span></span>
+								<input bind:value={formData.postcode} inputmode="numeric" maxlength="4" class:invalid-field={shouldShowFieldError('postcode')} on:blur={() => touchField('postcode')} />
 							</label>
 						</div>
 
 						{#if isOtherCouncil}
 							<div class="form-grid one-col-grid top-gap">
 								<label>
-									<span>Other council name</span>
-									<input bind:value={formData.councilOther} placeholder="Enter council" />
+									<span class="field-label">Other council name <span class="required-marker">*</span></span>
+									<input bind:value={formData.councilOther} placeholder="Enter council" class:invalid-field={shouldShowFieldError('councilOther')} on:blur={() => touchField('councilOther')} />
 								</label>
 							</div>
 						{/if}
@@ -950,8 +1466,8 @@
 
 							{#if showTransportDetails}
 								<label>
-									<span>Please describe the transport required</span>
-									<input bind:value={formData.transportDetails} />
+									<span class="field-label">Please describe the transport required <span class="required-marker">*</span></span>
+									<input bind:value={formData.transportDetails} class:invalid-field={shouldShowFieldError('transportDetails')} on:blur={() => touchField('transportDetails')} />
 								</label>
 							{/if}
 						</div>
@@ -961,16 +1477,16 @@
 						<h3>Emergency and Additional Notes</h3>
 						<div class="form-grid three-col-grid">
 							<label>
-								<span>Emergency contact 1 name</span>
-								<input bind:value={formData.emergency1Name} />
+								<span class="field-label">Emergency contact 1 name <span class="required-marker">*</span></span>
+								<input bind:value={formData.emergency1Name} class:invalid-field={shouldShowFieldError('emergency1Name')} on:blur={() => touchField('emergency1Name')} />
 							</label>
 							<label>
 								<span>Emergency contact 1 relationship</span>
 								<input bind:value={formData.emergency1Relationship} />
 							</label>
 							<label>
-								<span>Emergency contact 1 phone</span>
-								<input bind:value={formData.emergency1Phone} />
+								<span class="field-label">Emergency contact 1 phone <span class="required-marker">*</span></span>
+								<input bind:value={formData.emergency1Phone} class:invalid-field={shouldShowFieldError('emergency1Phone')} on:blur={() => touchField('emergency1Phone')} />
 							</label>
 
 							<label>
@@ -1020,7 +1536,7 @@
 				<div class="step-section">
 					<div class="subsection">
 						<h3>Select Programs</h3>
-						<p class="sub-copy">Choose one or more programs for this participant.</p>
+						<p class="sub-copy">Choose one or more programs for this participant. <span class="required-marker">*</span></p>
 						<div class="program-grid">
 							{#if programs.length === 0}
 								<div class="empty-state compact">
@@ -1048,9 +1564,10 @@
 				<div class="step-section">
 					<div class="subsection">
 						<h3>Program Registration Details</h3>
-						<p class="sub-copy">Capture any extra details needed for each selected program.</p>
+						<p class="sub-copy">Step 3 now changes based on the program selected in Step 2.</p>
 						{#each selectedPrograms as program}
 							{@const details = formData.programSpecificData[program.program_id] || emptyProgramDetails()}
+							{@const config = getProgramFormConfig(program.program_name)}
 							<div class="program-detail-card">
 								<div class="program-detail-header">
 									<h4>{program.program_name}</h4>
@@ -1059,20 +1576,11 @@
 
 								<div class="form-grid">
 									<label>
-										<span>Membership type</span>
+										<span>{getMembershipLabel(program.program_name)} <span class="required-marker">*</span></span>
 										<select value={details.membershipType} on:change={(event) => updateProgramData(program.program_id, 'membershipType', getControlValue(event))}>
-											<option value="">Select membership type</option>
-											{#each MEMBERSHIP_OPTIONS as membership}
+											<option value="">Select option</option>
+											{#each getMembershipOptions(program.program_name) as membership}
 												<option value={membership}>{membership}</option>
-											{/each}
-										</select>
-									</label>
-
-									<label>
-										<span>Registration status</span>
-										<select value={details.status} on:change={(event) => updateProgramData(program.program_id, 'status', getControlValue(event))}>
-											{#each REGISTRATION_STATUS_OPTIONS as statusOption}
-												<option value={statusOption}>{statusOption}</option>
 											{/each}
 										</select>
 									</label>
@@ -1081,20 +1589,89 @@
 										<span>Program notes</span>
 										<textarea rows="3" value={details.programNotes} on:input={(event) => updateProgramData(program.program_id, 'programNotes', getControlValue(event))}></textarea>
 									</label>
-
-									<label class="wide">
-										<span>Additional program-specific information</span>
-										<textarea rows="3" value={details.additionalInfo} on:input={(event) => updateProgramData(program.program_id, 'additionalInfo', getControlValue(event))}></textarea>
-									</label>
 								</div>
 
-								<div class="checkbox-grid">
-									<label class="checkbox-row"><input type="checkbox" checked={details.programParticipationConsent} on:change={(event) => updateProgramData(program.program_id, 'programParticipationConsent', getControlChecked(event))} /> <span>Program participation consent</span></label>
-									<label class="checkbox-row"><input type="checkbox" checked={details.parentGuardianConsent} on:change={(event) => updateProgramData(program.program_id, 'parentGuardianConsent', getControlChecked(event))} /> <span>Parent/guardian consent</span></label>
-									<label class="checkbox-row"><input type="checkbox" checked={details.medicalRiskAcknowledged} on:change={(event) => updateProgramData(program.program_id, 'medicalRiskAcknowledged', getControlChecked(event))} /> <span>Medical risk acknowledged</span></label>
-									<label class="checkbox-row"><input type="checkbox" checked={details.ambulanceAuthorisation} on:change={(event) => updateProgramData(program.program_id, 'ambulanceAuthorisation', getControlChecked(event))} /> <span>Ambulance authorisation</span></label>
-									<label class="checkbox-row"><input type="checkbox" checked={details.photoConsentForProgram} on:change={(event) => updateProgramData(program.program_id, 'photoConsentForProgram', getControlChecked(event))} /> <span>Photo consent for program</span></label>
-								</div>
+								{#if getProgramInfoSections(program.program_name).length > 0}
+									<div class="program-info-sections">
+										{#each getProgramInfoSections(program.program_name) as infoSection}
+											<div class="info-box">
+												{#if infoSection.title}<h5>{infoSection.title}</h5>{/if}
+												{#if infoSection.text}<p>{infoSection.text}</p>{/if}
+												{#if infoSection.bullets && infoSection.bullets.length > 0}
+													<ul>
+														{#each infoSection.bullets as bullet}
+															<li>{bullet}</li>
+														{/each}
+													</ul>
+												{/if}
+											</div>
+										{/each}
+									</div>
+								{/if}
+
+								{#if config.fields.length > 0}
+									<div class="dynamic-program-fields">
+										{#each config.fields.filter((field) => shouldShowProgramField(field, program.program_id)) as field}
+											<div class="dynamic-field-card" class:full-width-card={field.fullWidth}>
+												{#if field.type === 'checkboxGroup'}
+													<div>
+														<span class="field-label">{field.label}{#if field.required} <span class="required-marker">*</span>{/if}</span>
+														<div class="option-chip-group top-gap">
+															{#each field.options || [] as option}
+																<label class="option-chip">
+																	<input
+																		type="checkbox"
+																		checked={getProgramCustomList(program.program_id, field.key).includes(option)}
+																		on:change={() => toggleProgramCustomCheckbox(program.program_id, field.key, option)}
+																	/>
+																	<span>{option}</span>
+																</label>
+															{/each}
+														</div>
+														{#if field.helpText}
+															<small class="field-note">{field.helpText}</small>
+														{/if}
+													</div>
+												{:else}
+													<label>
+														{#if field.introText}
+															<p class="field-intro">{field.introText}</p>
+														{/if}
+														<span class="field-label">{field.label}{#if field.required} <span class="required-marker">*</span>{/if}</span>
+														{#if field.type === 'textarea'}
+															<textarea rows="3" value={getProgramCustomValue(program.program_id, field.key)} on:input={(event) => updateProgramCustomField(program.program_id, field.key, getControlValue(event))}></textarea>
+														{:else if field.type === 'select'}
+															<select value={getProgramCustomValue(program.program_id, field.key)} on:change={(event) => updateProgramCustomField(program.program_id, field.key, getControlValue(event))}>
+																<option value="">Select option</option>
+																{#each field.options || [] as option}
+																	<option value={option}>{option}</option>
+																{/each}
+															</select>
+														{:else if field.type === 'date'}
+															<input type="date" value={getProgramCustomValue(program.program_id, field.key)} on:input={(event) => updateProgramCustomField(program.program_id, field.key, getControlValue(event))} />
+														{:else}
+															<input value={getProgramCustomValue(program.program_id, field.key)} on:input={(event) => updateProgramCustomField(program.program_id, field.key, getControlValue(event))} />
+														{/if}
+														{#if field.helpText}
+															<small class="field-note">{field.helpText}</small>
+														{/if}
+													</label>
+												{/if}
+											</div>
+										{/each}
+									</div>
+								{/if}
+
+								{#if getProgramConsentItems(program.program_name).length > 0}
+									<div class="checkbox-grid">
+										{#each getProgramConsentItems(program.program_name) as consentItem}
+											<label class="checkbox-row consent-row" class:full-width-card={consentItem.fullWidth}>
+												<input type="checkbox" checked={details[consentItem.field]} on:change={(event) => updateProgramData(program.program_id, consentItem.field, getControlChecked(event))} />
+												<span>{consentItem.label}{#if consentItem.required} <span class="required-marker">*</span>{/if}</span>
+											</label>
+										{/each}
+									</div>
+								{/if}
 							</div>
 						{/each}
 					</div>
@@ -1248,6 +1825,33 @@
 		gap: 8px;
 		font-weight: 600;
 		color: #152238;
+	}
+
+	.field-label {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+	}
+
+	.required-marker {
+		color: #dc2626;
+		font-weight: 700;
+	}
+
+	.field-note {
+		font-size: 12px;
+		font-weight: 500;
+		color: #64748b;
+	}
+
+	.invalid-field {
+		border-color: #dc2626 !important;
+		background: #fff7f7;
+	}
+
+	.invalid-field:focus {
+		border-color: #dc2626 !important;
+		box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
 	}
 
 	.form-grid {
@@ -1511,6 +2115,79 @@
 		gap: 12px 18px;
 	}
 
+	.dynamic-program-fields {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(240px, 1fr));
+		gap: 16px;
+		margin: 20px 0;
+	}
+
+	.dynamic-field-card {
+		padding: 16px;
+		border: 1px solid #e5e7eb;
+		border-radius: 18px;
+		background: #f8fafc;
+	}
+
+	.full-width-card {
+		grid-column: 1 / -1;
+	}
+
+	.option-chip-group {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+	}
+
+	.program-info-sections {
+		display: grid;
+		gap: 12px;
+		margin: 18px 0 6px;
+	}
+
+	.info-box {
+		padding: 14px 16px;
+		border-radius: 16px;
+		background: #fff7ed;
+		border: 1px solid #fdba74;
+		color: #7c2d12;
+	}
+
+	.info-box h5 {
+		margin: 0 0 8px;
+		font-size: 14px;
+	}
+
+	.info-box p,
+	.info-box ul {
+		margin: 0;
+		font-size: 14px;
+		line-height: 1.55;
+	}
+
+	.field-intro {
+		margin: 0 0 12px;
+		font-size: 14px;
+		line-height: 1.6;
+		color: #475569;
+	}
+
+	.info-box ul {
+		padding-left: 18px;
+		margin-top: 8px;
+	}
+
+	.option-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		padding: 10px 12px;
+		border-radius: 999px;
+		background: #ffffff;
+		border: 1px solid #dbe3ef;
+		font-weight: 500;
+	}
+
 	.consent-list {
 		display: grid;
 		grid-template-columns: 1fr;
@@ -1538,6 +2215,13 @@
 
 	.consent-row span {
 		flex: 1;
+	}
+
+	.field-note {
+		display: block;
+		margin-top: 8px;
+		white-space: pre-line;
+		color: #64748b;
 	}
 
 	.checkbox-row input {

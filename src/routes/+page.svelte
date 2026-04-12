@@ -38,7 +38,7 @@
         justify-content: center;
         overflow: hidden;
 
-		color: rgb(9, 133, 125);
+		color: rgb(6, 99, 92);
 
         background-size: cover;
         background-position: center;
